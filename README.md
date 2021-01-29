@@ -25,6 +25,6 @@ Any PR are welcomed! But be aware of the mess code made by myself :P
 
 ## Thanks these libraries :D
 
-[`tiny-skia`](https://github.com/RazrFalcon/tiny-skia): Fast and small skia port to Rust, use it for main gui rendering.
-[`font-kit`](https://github.com/servo/font-kit): A font finding and rasterizing library, use it for text rendering.
-[`winapi`](https://github.com/retep998/winapi-rs): Gives us a lot of win32 api to make a layered window.
+- [`tiny-skia`](https://github.com/RazrFalcon/tiny-skia): Fast and small skia port to Rust, use it for main gui rendering.
+- [`font-kit`](https://github.com/servo/font-kit): A font finding and rasterizing library, use it for text rendering.
+- [`winapi`](https://github.com/retep998/winapi-rs): Gives us a lot of win32 api to make a layered window.
