@@ -1,44 +1,30 @@
-use crate::utils::{ControlUid, DrawTargetExt};
-use crate::widgets::{EventResult, WindowEvent};
-use crate::{system::enums::HitResult, widgets::UserEvent};
+use crate::{DrawCtx, EventCtx};
+use crate::r#box::AreaBox;
+use crate::system::enums::HitResult;
+use crate::utils::{ControlUid};
 
-pub trait Control {
+pub trait Control<D> {
     fn uid(&self) -> ControlUid;
-    fn update(&mut self) -> bool;
-    fn set_g_pos(&mut self, pos: (i32, i32));
-    fn draw(&mut self, parent_x: f32, parent_y: f32, f: &mut DrawTargetExt);
-    fn width(&self) -> u32;
-    fn height(&self) -> u32;
-    fn set_width(&mut self, v: u32);
-    fn set_height(&mut self, v: u32);
-    fn pos_x(&self) -> i32;
-    fn pos_y(&self) -> i32;
-    fn set_pos_x(&mut self, v: i32);
-    fn set_pos_y(&mut self, v: i32);
-    // Events
-    fn emit(&mut self, evt: WindowEvent, user_evts: &mut Vec<UserEvent>) -> EventResult;
+    fn event(&mut self, _ctx: &mut EventCtx, _data: &mut D) {}
+    fn update(&mut self, _data: &D) {}
+    fn draw(&mut self, _ctx: &mut DrawCtx, _data: &D) {}
+    fn layout(&self, _max_box: AreaBox) -> AreaBox {
+        AreaBox::ZERO
+    }
 }
 
-impl PartialEq for dyn Control {
-    fn eq(&self, other: &dyn Control) -> bool {
+impl<D> PartialEq for dyn Control<D> {
+    fn eq(&self, other: &dyn Control<D>) -> bool {
         self.uid() == other.uid()
     }
 }
 
-pub trait SubControl: Control + Clone {}
-
-pub trait Container {
-    fn update_positions(&mut self);
-    fn add_child<T: 'static + SubControl>(&mut self, child: T);
-    fn remove_child<T: 'static + SubControl>(&mut self, child: T);
-}
-
-pub trait TopControl: Control {
+pub trait TopControl<D>: Control<D> {
     fn destroy(&mut self);
     fn is_destroyed(&self) -> bool;
-    fn hit_test(&mut self, x: i32, y: i32) -> HitResult;
-    fn need_update(&self) -> bool;
-    fn cancel_update(&mut self);
+    fn hit_test(&mut self, _x: i32, _y: i32) -> HitResult {
+        HitResult::Client
+    }
     fn real_width(&self) -> u32;
     fn real_height(&self) -> u32;
 }

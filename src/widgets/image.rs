@@ -1,10 +1,9 @@
 use tiny_skia::Pixmap;
 
-use crate::traits::{Control, SubControl};
+use crate::DrawCtx;
+use crate::traits::{Control};
 use crate::utils::uid::gen_uid;
-use crate::utils::{ControlUid, DrawTargetExt};
-
-use super::{EventResult, UserEvent, WindowEvent};
+use crate::utils::{ControlUid};
 
 pub struct ImageControl {
     _uid: ControlUid,
@@ -40,11 +39,11 @@ impl Default for ImageControl {
         }
     }
 }
-impl Control for ImageControl {
-    fn update(&mut self) -> bool {
-        self.need_update
+impl<D> Control<D> for ImageControl {
+    fn update(&mut self, _data: &D) {
+        
     }
-    fn draw(&mut self, _x: f32, _y: f32, _f: &mut DrawTargetExt) {
+    fn draw(&mut self, _ctx: &mut DrawCtx<'_>, _data: &D) {
         /*
         let draw_x = x as f32;
         let draw_y = y as f32;
@@ -61,52 +60,6 @@ impl Control for ImageControl {
         );
          */
         self.need_update = false;
-    }
-
-    fn emit(&mut self, _evt: WindowEvent, _user_evts: &mut Vec<UserEvent>) -> EventResult {
-        // 处理事件
-        super::EventResult::Bubble
-    }
-
-    fn set_g_pos(&mut self, pos: (i32, i32)) {
-        self.g_pos = pos;
-    }
-
-    #[inline]
-    fn width(&self) -> u32 {
-        self.size.0
-    }
-    #[inline]
-    fn height(&self) -> u32 {
-        self.size.1
-    }
-
-    #[inline]
-    fn set_width(&mut self, v: u32) {
-        self.size.0 = v;
-    }
-
-    #[inline]
-    fn set_height(&mut self, v: u32) {
-        self.size.1 = v;
-    }
-    #[inline]
-    fn pos_x(&self) -> i32 {
-        self.pos.0
-    }
-    #[inline]
-    fn pos_y(&self) -> i32 {
-        self.pos.1
-    }
-
-    #[inline]
-    fn set_pos_x(&mut self, v: i32) {
-        self.pos.0 = v;
-    }
-
-    #[inline]
-    fn set_pos_y(&mut self, v: i32) {
-        self.pos.1 = v;
     }
 
     #[inline]
@@ -127,4 +80,3 @@ impl<'a, 'b> Clone for ImageControl {
         }
     }
 }
-impl<'a, 'b> SubControl for ImageControl {}

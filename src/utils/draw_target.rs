@@ -32,7 +32,7 @@ fn get_font() -> Font {
 
 fn get_bold_font() -> Font {
     SystemSource::new()
-        .select_best_match(&get_fonts(), &Properties::new().weight(Weight::BOLD))
+        .select_best_match(&get_fonts(), Properties::new().weight(Weight::BOLD))
         .unwrap()
         .load()
         .unwrap()
@@ -60,12 +60,12 @@ pub enum FontType {
 
 impl DrawTargetExt {
     pub fn new(width: i32, height: i32) -> Self {
-        let result = Self {
+        
+        Self {
             pixmap: Pixmap::new(width as u32, height as u32).unwrap(),
             font: get_font(),
             font_bold: get_bold_font(),
-        };
-        result
+        }
     }
 
     pub fn canvas(&mut self) -> Canvas {

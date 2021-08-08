@@ -6,6 +6,8 @@ mod windows;
 #[cfg(target_os = "windows")]
 pub use windows::*;
 
+
+
 pub mod enums {
     #[derive(Copy, Clone, Debug, Eq, PartialEq)]
     pub enum HitResult {
@@ -19,19 +21,13 @@ pub mod enums {
 
 /// 不同系统模块都需要实现的 trait
 pub mod traits {
-    use crate::widgets::WindowEvent;
-    use crate::{traits::TopControl, widgets::UserEvent};
 
     use super::enums::HitResult;
 
     /// 系统窗口，提供了可绘制的画布以进行绘图
-    pub trait SystemDrawableWindow<'a> {
-        /// 创建一个窗口
-        fn new(top_control: &'a mut dyn TopControl) -> Self;
+    pub trait SystemDrawableWindow {
         /// 获取窗口原始句柄，用于和画板进行对接
         fn raw_handle(&self) -> usize;
-        /// 赋予一个顶级可绘制的控件
-        fn set_top_control(&mut self, top_control: &'a mut dyn TopControl);
         /// 立即改变系统窗口 & 画布的大小
         fn resize(&mut self, width: u32, height: u32);
         /// 获取窗口左上角的横坐标
@@ -53,18 +49,24 @@ pub mod traits {
         /// 进行一次系统事件轮询，返回统一的窗口事件
         ///
         /// 第一个参数为是否不阻塞请求消息，否则除非事件队列内仍有事件，该函数将会阻塞直到有事件发生
-        fn query_system_event(&mut self, peek: bool) -> WindowEvent;
+        fn query_system_event(&mut self, peek: bool);
         /// 进行一次用户控件事件轮询，返回简化的用户控件事件
         ///
         /// 第一个参数为是否不阻塞请求消息，否则除非事件队列内仍有事件，该函数将会阻塞直到有事件发生
-        fn query_event(&mut self, peek: bool) -> UserEvent;
+        fn query_event(&mut self, peek: bool);
         /// 执行点击测试，确认该位置属于什么控件，如关闭按钮，客户区域等
         fn hit_test(&mut self, x: i32, y: i32) -> HitResult;
         /// 将画板的内容同步到系统窗口上
         fn sync(&mut self);
+        /// 获取画板本体
+        fn fabric(&mut self) -> &mut dyn Fabric;
         /// 显示窗口
         fn show(&mut self);
         /// 隐藏窗口
         fn hide(&mut self);
+    }
+
+    pub trait Fabric {
+
     }
 }

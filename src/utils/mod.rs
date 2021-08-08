@@ -3,7 +3,6 @@ pub mod color;
 pub mod drawing;
 pub mod math;
 pub mod spring;
-pub mod state;
 pub mod theme;
 pub mod uid;
 

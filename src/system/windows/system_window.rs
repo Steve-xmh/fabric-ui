@@ -1,7 +1,7 @@
 use std::mem;
 use std::ptr::null_mut;
-use std::time::Instant;
-use std::{cell::RefCell, ffi::c_void};
+
+use std::{ffi::c_void};
 
 use winapi::shared::minwindef::*;
 use winapi::shared::windef::*;
@@ -10,9 +10,8 @@ use winapi::um::wingdi::*;
 use winapi::um::winuser::*;
 
 use crate::system::traits::SystemDrawableWindow;
-use crate::traits::{w_str, TopControl};
-use crate::widgets::WindowEvent;
-use crate::{system::enums::HitResult, utils::ControlUid, widgets::UserEvent};
+use crate::traits::{w_str};
+use crate::{system::enums::HitResult};
 
 use super::fabric::Fabric;
 use super::window_proc::window_proc;
@@ -29,29 +28,24 @@ unsafe fn set_window_long(window: HWND, data: usize) -> usize {
 
 pub fn destroy_window(handle: usize) {
     unsafe {
-        PostMessageW(handle as HWND, WM_DESTROY, 0, 0);
+        PostMessageW(handle as _, WM_DESTROY, 0, 0);
     }
 }
 
-pub struct SystemWindow<'a> {
+pub struct SystemWindow {
     hwnd: HWND,
     wc: WNDCLASSW,
     size: SIZE,
     pos_rect: RECT,
     ppt_src: POINT,
-    fabric: RefCell<Fabric>,
-    render_time: Instant,
+    fabric: Fabric,
     blend_func: BLENDFUNCTION,
-    focused_control: ControlUid,
-    pub window_events: Vec<WindowEvent>,
-    pub user_events: Vec<UserEvent>,
-    top_control: &'a mut dyn TopControl,
 }
 
-impl<'a> SystemDrawableWindow<'a> for SystemWindow<'a> {
-    fn new(top_control: &'a mut dyn TopControl) -> Self {
-        let real_width = top_control.real_width() as i32;
-        let real_height = top_control.real_height() as i32;
+impl SystemWindow {
+    pub fn new() -> Self {
+        let real_width = 800;
+        let real_height = 600;
         let class_name = w_str("FabricWindowClass");
         let wc = unsafe {
             let wc = WNDCLASSW {
@@ -105,7 +99,7 @@ impl<'a> SystemDrawableWindow<'a> for SystemWindow<'a> {
                 0,
             );
         }
-        let fabric = RefCell::new(Fabric::new(hwnd_win, real_width as u32, real_height as u32));
+        let fabric = Fabric::new(hwnd_win, real_width as u32, real_height as u32);
         let mut pos_rect = RECT {
             left: 0,
             top: 0,
@@ -128,31 +122,24 @@ impl<'a> SystemDrawableWindow<'a> for SystemWindow<'a> {
                 AlphaFormat: AC_SRC_ALPHA,
             },
             wc,
-            render_time: Instant::now(),
             fabric,
             hwnd: hwnd_win,
-            focused_control: top_control.uid(),
-            top_control,
             pos_rect,
-            window_events: Vec::with_capacity(16),
-            user_events: Vec::with_capacity(16),
         };
         unsafe {
             set_window_long(hwnd_win, &mut r as *mut Self as usize);
         }
         r
     }
+}
 
-    fn hit_test(&mut self, x: i32, y: i32) -> HitResult {
-        self.top_control.hit_test(x, y)
-    }
-
-    fn set_top_control(&mut self, top_control: &'a mut dyn TopControl) {
-        self.top_control = top_control;
+impl SystemDrawableWindow for SystemWindow {
+    fn hit_test(&mut self, _x: i32, _y: i32) -> HitResult {
+        HitResult::Client
     }
 
     fn resize(&mut self, width: u32, height: u32) {
-        self.fabric.borrow_mut().resize(width, height);
+        self.fabric.resize(width, height);
     }
 
     fn pos_x(&self) -> i32 {
@@ -187,80 +174,35 @@ impl<'a> SystemDrawableWindow<'a> for SystemWindow<'a> {
         self.size.cy = h as i32;
     }
 
-    fn query_event(&mut self, peek: bool) -> UserEvent {
-        let evt = self.query_system_event(peek);
-        match evt {
-            WindowEvent::None => {}
-            WindowEvent::CharInput(_, c) => {
-                self.top_control.emit(
-                    WindowEvent::CharInput(self.focused_control, c),
-                    &mut self.user_events,
-                );
-            }
-            other => {
-                // println!("WE {:?}", other);
-                self.top_control.emit(other, &mut self.user_events);
-            }
-        };
-        if self.user_events.len() > 0 {
-            match self.user_events.remove(0) {
-                UserEvent::ControlClicked(c) => {
-                    self.focused_control = c;
-                    UserEvent::ControlClicked(c)
-                }
-                UserEvent::WindowResize(w, h) => {
-                    self.resize(w, h);
-                    UserEvent::None
-                }
-                other => other,
-            }
-        } else {
-            UserEvent::None
-        }
+    fn query_event(&mut self, peek: bool) {
+        let _evt = self.query_system_event(peek);
     }
 
-    fn query_system_event(&mut self, peek: bool) -> WindowEvent {
-        let need_update = self.top_control.update();
-        if need_update && self.render_time.elapsed().as_millis() > 16 {
-            self.size.cx = self.top_control.real_width() as i32;
-            self.size.cy = self.top_control.real_height() as i32;
-            self.top_control
-                .draw(0., 0., &mut self.fabric.borrow_mut().dt);
-            self.sync();
-            self.render_time = Instant::now();
-            self.top_control.cancel_update();
-        }
+    fn query_system_event(&mut self, peek: bool) {
         unsafe {
             set_window_long(self.hwnd, self as *mut Self as usize);
             let mut msg = mem::zeroed();
-            let msgr = if peek || need_update || self.window_events.len() > 0 {
+            let msgr = if peek {
                 PeekMessageW(&mut msg, 0 as HWND, 0, 0, PM_REMOVE)
             } else {
                 GetMessageW(&mut msg, 0 as HWND, 0, 0)
             };
-            if msgr != 0 {
-                if msg.message != 0 {
-                    TranslateMessage(&msg);
-                    DispatchMessageW(&msg);
-                }
+            if msgr != 0 && msg.message != 0 {
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
             }
-        }
-        if self.window_events.len() > 0 {
-            self.window_events.remove(0)
-        } else {
-            WindowEvent::None
         }
     }
 
     fn sync(&mut self) {
-        self.fabric.borrow_mut().sync();
+        self.fabric.sync();
         unsafe {
             UpdateLayeredWindow(
                 self.hwnd,
                 null_mut(),
                 null_mut(),
                 &mut self.size,
-                self.fabric.borrow().m_hdc,
+                self.fabric.m_hdc,
                 &mut self.ppt_src,
                 0,
                 &mut self.blend_func,
@@ -284,9 +226,13 @@ impl<'a> SystemDrawableWindow<'a> for SystemWindow<'a> {
     fn raw_handle(&self) -> usize {
         self.hwnd as usize
     }
+
+    fn fabric(&mut self) -> &mut dyn super::super::traits::Fabric {
+        &mut self.fabric
+    }
 }
 
-impl<'a> Drop for SystemWindow<'a> {
+impl Drop for SystemWindow {
     fn drop(&mut self) {
         unsafe {
             UnregisterClassW(self.wc.lpszClassName, self.wc.hInstance);

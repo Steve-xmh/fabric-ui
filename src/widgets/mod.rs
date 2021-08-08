@@ -8,9 +8,5 @@ pub mod image;
 pub use self::image::ImageControl;
 pub mod input;
 pub use input::InputControl;
-mod events;
-pub use events::EventResult;
-pub use events::UserEvent;
-pub(crate) use events::WindowEvent;
 
 pub(crate) mod template;

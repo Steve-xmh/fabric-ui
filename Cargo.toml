@@ -22,9 +22,3 @@ winapi = { version = "*", features = ["winuser", "windef", "wingdi", "uxtheme", 
 
 [target.'cfg(target_os="windows")'.build-dependencies]
 winres = "*"
-
-[profile.release]
-lto = "fat"
-codegen-units = 1
-panic = "abort"
-opt-level = "s"

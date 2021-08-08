@@ -4,7 +4,7 @@ use winapi::shared::minwindef::{LPARAM, LRESULT, UINT, WPARAM};
 use winapi::shared::windef::HWND;
 use winapi::um::winuser::*;
 
-use crate::widgets::WindowEvent;
+
 
 use super::super::traits::SystemDrawableWindow;
 use super::SystemWindow;
@@ -33,8 +33,7 @@ pub unsafe extern "system" fn window_proc(
         let win: &mut SystemWindow = mem::transmute(win);
         match msg {
             WM_CHAR => match std::char::from_u32(w_param as u32) {
-                Some(c) => {
-                    win.window_events.push(WindowEvent::CharInput(0, c));
+                Some(_c) => {
                     return 0;
                 }
                 None => {}
@@ -44,29 +43,24 @@ pub unsafe extern "system" fn window_proc(
                 return 0;
             }
             WM_MOUSEMOVE => {
-                let x = (l_param as u32) & 0xFFFF;
-                let y = (l_param as u32) >> 16;
-                win.window_events.push(WindowEvent::MouseMove(x, y));
+                let _x = (l_param as u32) & 0xFFFF;
+                let _y = (l_param as u32) >> 16;
                 return 0;
             }
             WM_LBUTTONDOWN => {
-                let x = (l_param as u32) & 0xFFFF;
-                let y = (l_param as u32) >> 16;
-                win.window_events.push(WindowEvent::MouseDown(x, y));
+                let _x = (l_param as u32) & 0xFFFF;
+                let _y = (l_param as u32) >> 16;
                 return 0;
             }
             WM_LBUTTONUP => {
-                let x = (l_param as u32) & 0xFFFF;
-                let y = (l_param as u32) >> 16;
-                win.window_events.push(WindowEvent::MouseUp(x, y));
+                let _x = (l_param as u32) & 0xFFFF;
+                let _y = (l_param as u32) >> 16;
                 return 0;
             }
             WM_KEYDOWN => {
-                win.window_events.push(WindowEvent::KeyDown(w_param));
                 return 0;
             }
             WM_KEYUP => {
-                win.window_events.push(WindowEvent::KeyUp(w_param));
                 return 0;
             }
             WM_MOVE => {
@@ -74,20 +68,16 @@ pub unsafe extern "system" fn window_proc(
                 let y = ((l_param as u32) >> 16) as i32;
                 win.set_pos_x(x);
                 win.set_pos_y(y);
-                win.window_events.push(WindowEvent::WindowMove(x, y));
             }
             WM_SIZE => {
-                let w = (l_param as u32) & 0xFFFF;
-                let h = (l_param as u32) >> 16;
-                win.window_events.push(WindowEvent::WindowResize(w, h));
+                let _w = (l_param as u32) & 0xFFFF;
+                let _h = (l_param as u32) >> 16;
             }
             WM_NCLBUTTONDOWN => match w_param as isize {
                 HTCLOSE => {
-                    win.window_events.push(WindowEvent::CloseWindow);
                     return 0;
                 }
                 HTMINBUTTON => {
-                    win.window_events.push(WindowEvent::HideWindow);
                     return 0;
                 }
                 _ => {}
@@ -106,5 +96,5 @@ pub unsafe extern "system" fn window_proc(
             _ => {}
         }
     }
-    return DefWindowProcW(h_wnd, msg, w_param, l_param);
+    DefWindowProcW(h_wnd, msg, w_param, l_param)
 }

@@ -29,7 +29,8 @@ impl Spring {
     fn position_velocity(&mut self) -> (f32, f32) {
         let x = self.start_time.elapsed().as_secs_f32();
         let c0 = self.position - self.target;
-        let result = if self.speed == 0. {
+        
+        if self.speed == 0. {
             (self.position, 0.)
         } else if self.damper < 1. {
             let c = (1. - self.damper.powi(2)).sqrt();
@@ -49,8 +50,7 @@ impl Spring {
                 self.target + (c0 + c1 * self.speed * x) / e,
                 self.speed * (c1 - c0 - c1 * self.speed * x) / e,
             )
-        };
-        result
+        }
     }
 
     pub fn arrived(&mut self) -> bool {

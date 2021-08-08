@@ -38,17 +38,17 @@ fn create_bitmap_hdc(h_wnd: HWND, info: &BITMAPINFO) -> (HDC, HBITMAP, Box<[u32]
         ReleaseDC(h_wnd, dc);
         if buf_dc == null_mut() {
             let err = GetLastError();
-            panic!(format!("Error buf_dc {}", err));
+            panic!("Error buf_dc {}", err);
         }
         let buf_bitmap =
             CreateDIBSection(buf_dc, info, DIB_RGB_COLORS, &mut ppv_bits, null_mut(), 0);
         if buf_bitmap == null_mut() {
             let err = GetLastError();
-            panic!(format!("Error buf_bitmap {}", err));
+            panic!("Error buf_bitmap {}", err);
         }
         if ppv_bits == null_mut() {
             let err = GetLastError();
-            panic!(format!("Error ppv_bits {}", err));
+            panic!("Error ppv_bits {}", err);
         }
         // let mut raw_slice: [usize; 2] = [ppv_bits as usize, (info.bmiHeader.biWidth * info.bmiHeader.biHeight) as usize * 4];
         let raw = Box::from_raw(std::slice::from_raw_parts_mut(
@@ -104,7 +104,7 @@ impl Fabric {
                 .load()
                 .unwrap(),
             font_bold: SystemSource::new()
-                .select_best_match(&fonts, &Properties::new().weight(Weight::BOLD))
+                .select_best_match(&fonts, Properties::new().weight(Weight::BOLD))
                 .unwrap()
                 .load()
                 .unwrap(),
@@ -170,6 +170,10 @@ impl Fabric {
                 );
         */
     }
+}
+
+impl super::super::traits::Fabric for Fabric {
+    
 }
 
 impl Drop for Fabric {

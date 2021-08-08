@@ -1,15 +1,14 @@
 //! 这里是一个控件的基本模板
 //! 以留备用方便做新控件
 
-use tiny_skia::{Paint, Shader};
 
-use crate::traits::{Control, SubControl};
-use crate::utils::drawing::gen_rect_path;
-use crate::utils::theme::get_theme_color_skia_color;
-use crate::utils::{is_in_area, uid::gen_uid};
-use crate::utils::{ControlUid, DrawTargetExt};
 
-use super::{EventResult, UserEvent, WindowEvent};
+
+use crate::traits::{Control};
+
+
+use crate::utils::{uid::gen_uid};
+use crate::utils::{ControlUid};
 
 pub struct InputControl {
     _uid: ControlUid,
@@ -66,120 +65,8 @@ impl Default for InputControl {
         }
     }
 }
-impl Control for InputControl {
-    fn update(&mut self) -> bool {
-        self.need_update
-    }
-    fn draw(&mut self, x: f32, y: f32, f: &mut DrawTargetExt) {
-        let _draw_x = x as f32;
-        let _draw_y = y as f32;
-        let _width = self.size.0 as f32;
-        let _height = self.size.1 as f32;
-        let mut canvas = f.canvas();
-        // 绘图在这里
-        canvas.stroke_path(
-            &gen_rect_path(x, y, _width, _height),
-            &Paint {
-                anti_alias: true,
-                shader: Shader::SolidColor(get_theme_color_skia_color()),
-                ..Default::default()
-            },
-            &Default::default(),
-        );
-        let text_len = f.mesures_text(&self.value, 13.);
-        f.render_text(
-            x + (_width - text_len) / 2.,
-            y + (_height - 6.5),
-            &self.value,
-            13.,
-            0x000000FF,
-        );
-
-        self.need_update = false;
-    }
-
-    fn emit(&mut self, evt: WindowEvent, user_evts: &mut Vec<UserEvent>) -> EventResult {
-        match evt {
-            WindowEvent::CharInput(u, c) => {
-                println!("CI {} {} {}", u, self.uid(), c);
-                if u == self.uid() {
-                    if c == '\x08' {
-                        self.value.pop();
-                    } else {
-                        self.value.push(c);
-                    }
-                    self.need_update = true;
-                    super::EventResult::NoBubbling
-                } else {
-                    super::EventResult::Bubble
-                }
-            }
-            WindowEvent::MousePress(x, y) => {
-                // println!("MP {} {} GP {} {}", x, y, self.g_pos.0, self.g_pos.1);
-                let is_in_area = is_in_area(
-                    x as i32,
-                    y as i32,
-                    self.g_pos.0,
-                    self.g_pos.1,
-                    self.size.0 as i32,
-                    self.size.1 as i32,
-                );
-                // println!("{}", is_in_area);
-                if is_in_area {
-                    user_evts.push(UserEvent::ControlClicked(self.uid()));
-                    super::EventResult::NoBubbling
-                } else {
-                    super::EventResult::Bubble
-                }
-            }
-            _ => super::EventResult::Bubble,
-        }
-    }
-
-    fn set_g_pos(&mut self, pos: (i32, i32)) {
-        self.g_pos = pos;
-    }
-
-    #[inline]
-    fn width(&self) -> u32 {
-        self.size.0
-    }
-    #[inline]
-    fn height(&self) -> u32 {
-        self.size.1
-    }
-
-    #[inline]
-    fn set_width(&mut self, v: u32) {
-        self.size.0 = v;
-    }
-
-    #[inline]
-    fn set_height(&mut self, v: u32) {
-        self.size.1 = v;
-    }
-    #[inline]
-    fn pos_x(&self) -> i32 {
-        self.pos.0
-    }
-    #[inline]
-    fn pos_y(&self) -> i32 {
-        self.pos.1
-    }
-
-    #[inline]
-    fn set_pos_x(&mut self, v: i32) {
-        self.pos.0 = v;
-    }
-
-    #[inline]
-    fn set_pos_y(&mut self, v: i32) {
-        self.pos.1 = v;
-    }
-
+impl<D> Control<D> for InputControl {
     fn uid(&self) -> ControlUid {
         self._uid
     }
 }
-
-impl SubControl for InputControl {}
