@@ -18,12 +18,12 @@ use super::window_proc::window_proc;
 
 #[cfg(target_arch = "x86_64")]
 unsafe fn set_window_long(window: HWND, data: usize) -> usize {
-    SetWindowLongPtrW(window, GWLP_USERDATA, data as isize) as usize
+    SetWindowLongPtrW(window, GWLP_USERDATA, data as _) as _
 }
 
 #[cfg(target_arch = "x86")]
 unsafe fn set_window_long(window: HWND, data: usize) -> usize {
-    SetWindowLongW(window, GWLP_USERDATA, data as usize)
+    SetWindowLongW(window, GWLP_USERDATA, data as _) as _
 }
 
 pub fn destroy_window(handle: usize) {
