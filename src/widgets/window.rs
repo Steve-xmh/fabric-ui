@@ -4,11 +4,11 @@ use std::time::SystemTime;
 
 use crate::core::WidgetPod;
 use crate::system::enums::HitResult;
-use crate::traits::{Control, TopControl};
+use crate::traits::{Widget, TopWidget};
 
 use crate::utils::uid::gen_uid;
 
-use crate::utils::{ControlUid};
+use crate::utils::{WidgetUid};
 
 
 #[derive(PartialEq, Debug, Clone, Copy)]
@@ -19,7 +19,7 @@ enum WindowTitleHovering {
 }
 
 pub struct WindowControl<D> {
-    _uid: ControlUid,
+    _uid: WidgetUid,
     inner: WidgetPod<D>,
     start_time: SystemTime,
     mouse_down_time: SystemTime,
@@ -33,7 +33,7 @@ const RADIUS: f32 = 2.;
 const SHADOW_SIZE: f32 = 16.;
 
 impl<D> WindowControl<D> {
-    pub fn new(inner: Box<dyn Control<D>>) -> Self {
+    pub fn new(inner: Box<dyn Widget<D>>) -> Self {
         
         Self {
             _uid: gen_uid(),
@@ -73,14 +73,15 @@ impl<D> WindowControl<D> {
     pub fn show(&self) {}
 }
 
-impl<D> Control<D> for WindowControl<D> {
-
-    fn uid(&self) -> ControlUid {
-        self._uid
+impl<D> Widget<D> for WindowControl<D> {
+    fn draw(&mut self, ctx: &mut crate::DrawCtx, _data: &D) {
+        // F74C00
+        ctx.pixmapmut.fill(tiny_skia::Color::from_rgba8(0x00, 0x4c, 0xf7, 0xAA));
+        println!("Draw");
     }
 }
 
-impl<D> TopControl<D> for WindowControl<D> {
+impl<D> TopWidget<D> for WindowControl<D> {
     fn real_width(&self) -> u32 {
         self.size.0 + (SHADOW_SIZE * 2.) as u32
     }

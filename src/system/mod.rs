@@ -22,6 +22,8 @@ pub mod enums {
 /// 不同系统模块都需要实现的 trait
 pub mod traits {
 
+    use tiny_skia::PixmapMut;
+
     use super::enums::HitResult;
 
     /// 系统窗口，提供了可绘制的画布以进行绘图
@@ -66,7 +68,9 @@ pub mod traits {
         fn hide(&mut self);
     }
 
-    pub trait Fabric {
-
+    pub trait Fabric<'a> {
+        fn set_pixel(&mut self, pos: usize, color: u32);
+        fn resize(&mut self, width: u32, height: u32);
+        fn pixmap_mut(&'a mut self) -> PixmapMut<'a>;
     }
 }

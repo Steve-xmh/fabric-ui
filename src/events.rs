@@ -1,4 +1,4 @@
-use crate::utils::ControlUid;
+use crate::utils::WidgetUid;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum EventResult {
@@ -25,14 +25,14 @@ pub enum WindowEvent {
     WindowMove(i32, i32),
     WindowResize(u32, u32),
     // Character input
-    CharInput(ControlUid, char),
+    CharInput(WidgetUid, char),
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum UserEvent {
     None,
     Quit,
-    ControlClicked(ControlUid),
+    ControlClicked(WidgetUid),
     /// Only for SystemWindow, never return to user.
     WindowResize(u32, u32),
 }

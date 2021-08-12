@@ -15,22 +15,20 @@ use winapi::{
     um::wingdi::DeleteObject,
 };
 
+use crate::utils::color::split_color;
 use crate::utils::DrawTargetExt;
 
-pub struct Fabric {
+pub struct WindowsFabric {
     pub width: u32,
     pub height: u32,
-    pub raw: Box<[u32]>,
-    pub dt: DrawTargetExt,
+    pub raw: Box<[u8]>,
     pub m_hdc: HDC,
     pub m_hbmp: HBITMAP,
     pub info: BITMAPINFO,
-    pub font: Font,
-    pub font_bold: Font,
     hwnd: HWND,
 }
 
-fn create_bitmap_hdc(h_wnd: HWND, info: &BITMAPINFO) -> (HDC, HBITMAP, Box<[u32]>) {
+fn create_bitmap_hdc(h_wnd: HWND, info: &BITMAPINFO) -> (HDC, HBITMAP, Box<[u8]>) {
     unsafe {
         let mut ppv_bits: *mut c_void = null_mut();
         let dc = GetDC(h_wnd);
@@ -52,8 +50,8 @@ fn create_bitmap_hdc(h_wnd: HWND, info: &BITMAPINFO) -> (HDC, HBITMAP, Box<[u32]
         }
         // let mut raw_slice: [usize; 2] = [ppv_bits as usize, (info.bmiHeader.biWidth * info.bmiHeader.biHeight) as usize * 4];
         let raw = Box::from_raw(std::slice::from_raw_parts_mut(
-            ppv_bits as *mut u32,
-            (info.bmiHeader.biWidth * info.bmiHeader.biHeight) as usize,
+            ppv_bits as *mut u8,
+            (info.bmiHeader.biWidth * info.bmiHeader.biHeight * 4) as usize,
         ));
         SelectObject(buf_dc, buf_bitmap as *mut c_void);
         (buf_dc, buf_bitmap, raw)
@@ -61,7 +59,7 @@ fn create_bitmap_hdc(h_wnd: HWND, info: &BITMAPINFO) -> (HDC, HBITMAP, Box<[u32]
 }
 
 // RGBA
-impl Fabric {
+impl WindowsFabric {
     pub fn new(h_wnd: HWND, width: u32, height: u32) -> Self {
         let info = BITMAPINFO {
             bmiHeader: BITMAPINFOHEADER {
@@ -98,47 +96,28 @@ impl Fabric {
             m_hdc,
             m_hbmp,
             hwnd: h_wnd,
-            font: SystemSource::new()
-                .select_best_match(&fonts, &Properties::new())
-                .unwrap()
-                .load()
-                .unwrap(),
-            font_bold: SystemSource::new()
-                .select_best_match(&fonts, Properties::new().weight(Weight::BOLD))
-                .unwrap()
-                .load()
-                .unwrap(),
-            dt: DrawTargetExt::new(width as i32, height as i32),
         };
         f
     }
+}
 
-    pub fn sync(&mut self) {
-        for i in 0..(self.width * self.height) as usize {
-            let pos =
-                ((self.height as usize - (i - i % self.width as usize) / self.width as usize) - 1)
-                    * self.width as usize
-                    + i % self.width as usize;
-            self.set_pixel(pos, self.dt.pixmap.pixels()[i].get());
-        }
-    }
-
+impl super::super::traits::Fabric<'_> for WindowsFabric {
     #[inline]
-    pub fn set_pixel(&mut self, pos: usize, color: u32) {
+    fn set_pixel(&mut self, pos: usize, color: u32) {
         let raw = self.raw.as_mut();
-        raw[pos as usize] = (color & 0xff000000)
-            | (color & 0xff00)
-            | ((color & 0xff) << 16)
-            | ((color & 0xff0000) >> 16);
+        let (r, g, b, a) = split_color(color);
+        raw[pos * 4] = r;
+        raw[pos * 4 + 1] = g;
+        raw[pos * 4 + 2] = b;
+        raw[pos * 4 + 3] = a;
     }
 
-    pub fn resize(&mut self, width: u32, height: u32) {
+    fn resize(&mut self, width: u32, height: u32) {
         /*
         let prev_width = self.dt.pixmap.width();
         let prev_height = self.dt.pixmap.height();
         let prev_data = self.dt.pixmap.data();
         */
-        self.dt = DrawTargetExt::new(width as i32, height as i32);
         self.info.bmiHeader.biWidth = width as i32;
         self.info.bmiHeader.biHeight = height as i32;
         self.width = width;
@@ -170,13 +149,13 @@ impl Fabric {
                 );
         */
     }
+
+    fn pixmap_mut(&mut self) -> tiny_skia::PixmapMut<'_> {
+        tiny_skia::PixmapMut::from_bytes(self.raw.as_mut(), self.width, self.height).unwrap()
+    }
 }
 
-impl super::super::traits::Fabric for Fabric {
-    
-}
-
-impl Drop for Fabric {
+impl Drop for WindowsFabric {
     fn drop(&mut self) {
         unsafe {
             DeleteDC(self.m_hdc);

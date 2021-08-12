@@ -1,30 +1,42 @@
 //! Some context that can get useful data
 
-use crate::{events::UserEvent, utils::DrawTargetExt};
+use tiny_skia::PixmapMut;
+
+use crate::{
+    events::UserEvent,
+    utils::{DrawTargetExt, WidgetUid},
+};
 
 pub struct EventCtx {
-    event: UserEvent
+    event: UserEvent,
 }
 
 pub struct DrawCtx<'a> {
-    draw_target: &'a mut DrawTargetExt,
-    transform: tiny_skia::Transform,
+    pub pixmapmut: &'a mut PixmapMut<'a>,
+    pub transform: tiny_skia::Transform,
+    pub widget_size: (f32, f32),
 }
 
-
+trait CommonCtx {
+    fn widget_id() -> WidgetUid;
+    fn set_widget_id() -> WidgetUid;
+    fn widget_size() -> (f32, f32);
+}
 
 impl<'a> DrawCtx<'a> {
-    pub(crate) fn new(draw_target: &'a mut DrawTargetExt) -> Self {
+    pub(crate) fn new(pixmapmut: &'a mut PixmapMut<'a>) -> Self {
         Self {
-            draw_target,
+            pixmapmut,
             transform: tiny_skia::Transform::default(),
+            widget_size: (f32::MAX, f32::MAX),
         }
     }
 
-    pub fn fork(&mut self, mut f: impl FnMut(&mut DrawCtx) + 'static) {
+    pub fn fork(&'a mut self, mut f: impl FnMut(&mut DrawCtx) + 'static) {
         let mut new_ctx = DrawCtx {
-            draw_target: self.draw_target,
+            pixmapmut: &mut self.pixmapmut,
             transform: self.transform.to_owned(),
+            widget_size: (self.widget_size.0, self.widget_size.1),
         };
         f(&mut new_ctx);
     }

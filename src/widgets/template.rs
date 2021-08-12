@@ -2,12 +2,11 @@
 //! 以留备用方便做新控件
 
 
-use crate::traits::{Control};
+use crate::traits::{Widget};
 use crate::utils::uid::gen_uid;
-use crate::utils::{ControlUid};
+use crate::utils::{WidgetUid};
 
 pub struct TemplateControl {
-    _uid: ControlUid,
     pos: (i32, i32),
     g_pos: (i32, i32),
     size: (u32, u32),
@@ -34,7 +33,6 @@ impl Clone for TemplateControl {
             pos: self.pos,
             g_pos: self.g_pos,
             need_update: true,
-            _uid: gen_uid(),
         }
     }
 }
@@ -43,7 +41,6 @@ impl Clone for TemplateControl {
 impl Default for TemplateControl {
     fn default() -> Self {
         Self {
-            _uid: gen_uid(),
             pos: (0, 0),
             size: (0, 0),
             g_pos: (0, 0),
@@ -52,8 +49,5 @@ impl Default for TemplateControl {
     }
 }
 
-impl<D> Control<D> for TemplateControl {
-    fn uid(&self) -> ControlUid {
-        self._uid
-    }
+impl<D> Widget<D> for TemplateControl {
 }

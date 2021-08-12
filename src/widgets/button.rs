@@ -4,9 +4,9 @@ use crate::DrawCtx;
 
 
 use crate::utils::uid::gen_uid;
-use crate::utils::{ControlUid};
+use crate::utils::{WidgetUid};
 use crate::{
-    traits::{Control},
+    traits::{Widget},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -18,7 +18,7 @@ enum ButtonStatus {
 }
 
 pub struct ButtonControl {
-    _uid: ControlUid,
+    _uid: WidgetUid,
     pos: (i32, i32),
     g_pos: (i32, i32),
     size: (u32, u32),
@@ -65,21 +65,5 @@ impl Clone for ButtonControl {
     }
 }
 
-impl<D> Control<D> for ButtonControl {
-    fn event(&mut self, _ctx: &mut crate::EventCtx, _data: &mut D) {
-        
-    }
-
-    fn update(&mut self, _data: &D) {
-        
-    }
-    
-    fn draw(&mut self, _ctx: &mut DrawCtx<'_>, _data: &D) {
-
-    }
-
-    #[inline]
-    fn uid(&self) -> crate::utils::ControlUid {
-        self._uid
-    }
+impl<D> Widget<D> for ButtonControl {
 }

@@ -1,11 +1,11 @@
-use crate::traits::Control;
+use crate::traits::Widget;
 use crate::utils::drawing::TextAlign;
 use crate::utils::uid::gen_uid;
-use crate::utils::{ControlUid};
+use crate::utils::{WidgetUid};
 
 
 pub struct TextLabelControl {
-    _uid: ControlUid,
+    _uid: WidgetUid,
     text: String,
     text_color: u32,
     text_size: f32,
@@ -59,10 +59,5 @@ impl Clone for TextLabelControl {
     }
 }
 
-impl<D> Control<D> for TextLabelControl {
-
-    #[inline]
-    fn uid(&self) -> crate::utils::ControlUid {
-        self._uid
-    }
+impl<D> Widget<D> for TextLabelControl {
 }

@@ -12,7 +12,7 @@ pub fn split_color(color: u32) -> Color {
 }
 
 #[inline]
-fn fix_alpha(a0: u8, a1: u8, f: f32) -> u8 {
+pub fn fix_alpha(a0: u8, a1: u8, f: f32) -> u8 {
     let a0 = (a0 as f32) / 255.0;
     let a1 = (a1 as f32) / 255.0;
     if a0 * a1 == 1.0 {
@@ -29,10 +29,25 @@ fn fix_alpha(a0: u8, a1: u8, f: f32) -> u8 {
 }
 
 #[inline]
-fn fix_color(c0: u8, c1: u8, f: f32) -> u8 {
+pub fn concat_color(r: u8, g: u8, b: u8, a: u8) -> u32 {
+    (r as u32) << 24 | (g as u32) << 16 | (b as u32) << 8 | a as u32
+}
+
+#[inline]
+pub fn fix_color(c0: u8, c1: u8, f: f32) -> u8 {
     let c0 = c0 as f32;
     let c1 = c1 as f32;
     (c0 + (c1 - c0) * f) as u8
+}
+
+#[inline]
+pub fn premultiply_color(color: u32) -> u32 {
+    let (r, g, b, a) = split_color(color);
+    let a = a as f32;
+    let r = (r as f32 * a / 255.) as u8;
+    let g = (g as f32 * a / 255.) as u8;
+    let b = (b as f32 * a / 255.) as u8;
+    concat_color(r, g, b, a as u8)
 }
 
 /// Linear interpolation between c0 and c1.

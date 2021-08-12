@@ -9,11 +9,11 @@ use winapi::um::libloaderapi::GetModuleHandleW;
 use winapi::um::wingdi::*;
 use winapi::um::winuser::*;
 
-use crate::system::traits::SystemDrawableWindow;
+use crate::system::traits::{Fabric, SystemDrawableWindow};
 use crate::traits::{w_str};
 use crate::{system::enums::HitResult};
 
-use super::fabric::Fabric;
+use super::fabric::WindowsFabric;
 use super::window_proc::window_proc;
 
 #[cfg(target_arch = "x86_64")]
@@ -38,11 +38,13 @@ pub struct SystemWindow {
     size: SIZE,
     pos_rect: RECT,
     ppt_src: POINT,
-    fabric: Fabric,
+    fabric: WindowsFabric,
     blend_func: BLENDFUNCTION,
 }
 
 impl SystemWindow {
+    /// 创建自带 Fabric 的窗口
+    /// 渲染时需要注意：在 Windows 中位图的字节顺序是 BGRA，而 Tiny Skia 使用的是 RGBA
     pub fn new() -> Self {
         let real_width = 800;
         let real_height = 600;
@@ -99,7 +101,7 @@ impl SystemWindow {
                 0,
             );
         }
-        let fabric = Fabric::new(hwnd_win, real_width as u32, real_height as u32);
+        let fabric = WindowsFabric::new(hwnd_win, real_width as u32, real_height as u32);
         let mut pos_rect = RECT {
             left: 0,
             top: 0,
@@ -195,7 +197,6 @@ impl SystemDrawableWindow for SystemWindow {
     }
 
     fn sync(&mut self) {
-        self.fabric.sync();
         unsafe {
             UpdateLayeredWindow(
                 self.hwnd,

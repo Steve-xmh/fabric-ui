@@ -41,8 +41,30 @@ fn get_bold_font() -> Font {
 #[inline]
 fn union_recti(a: RectI, b: RectI) -> RectI {
     RectI::new(
-        Vector2I::new(if a.origin_x() < b.origin_x() { a.origin_x() } else { b.origin_x() }, if a.origin_y() < b.origin_y() { a.origin_y() } else { b.origin_y() }),
-        Vector2I::new(if a.width() < b.width() { b.width() } else { a.width() }, if a.height() < b.height() { b.height() } else { a.height() })
+        Vector2I::new(
+            if a.origin_x() < b.origin_x() {
+                a.origin_x()
+            } else {
+                b.origin_x()
+            },
+            if a.origin_y() < b.origin_y() {
+                a.origin_y()
+            } else {
+                b.origin_y()
+            },
+        ),
+        Vector2I::new(
+            if a.width() < b.width() {
+                b.width()
+            } else {
+                a.width()
+            },
+            if a.height() < b.height() {
+                b.height()
+            } else {
+                a.height()
+            },
+        ),
     )
 }
 
@@ -60,16 +82,11 @@ pub enum FontType {
 
 impl DrawTargetExt {
     pub fn new(width: i32, height: i32) -> Self {
-        
         Self {
             pixmap: Pixmap::new(width as u32, height as u32).unwrap(),
             font: get_font(),
             font_bold: get_bold_font(),
         }
-    }
-
-    pub fn canvas(&mut self) -> Canvas {
-        Canvas::from(self.pixmap.as_mut())
     }
 
     /// 绘制自定义字体文本到指定位置
@@ -106,10 +123,7 @@ impl DrawTargetExt {
             combined_bounds = union_recti(combined_bounds, bounds);
             ids.push(id);
         }
-        let mut canvas = FKCanvas::new(
-            combined_bounds.size(),
-            font_kit::canvas::Format::A8,
-        );
+        let mut canvas = FKCanvas::new(combined_bounds.size(), font_kit::canvas::Format::A8);
         let mut pos = Vector2F::new(round(x), round(y));
         pos -= combined_bounds.origin().to_f32();
         for id in ids {
@@ -154,13 +168,14 @@ impl DrawTargetExt {
                 canvas.size.y().try_into().unwrap(),
             )
             .unwrap();
-
+            /*
             self.canvas().draw_pixmap(
                 pos.x() as i32,
                 pos.y() as i32 + (bounds.origin_y()) as i32 - size as i32,
                 font_pixmap,
                 &PixmapPaint::default(),
             );
+            */
 
             let ad = font.advance(id).unwrap();
             pos += Vector2F::new(ad.x() * size / 2048., ad.y());

@@ -4,14 +4,14 @@
 
 
 
-use crate::traits::{Control};
+use crate::traits::{Widget};
 
 
 use crate::utils::{uid::gen_uid};
-use crate::utils::{ControlUid};
+use crate::utils::{WidgetUid};
 
 pub struct InputControl {
-    _uid: ControlUid,
+    _uid: WidgetUid,
     pos: (i32, i32),
     g_pos: (i32, i32),
     size: (u32, u32),
@@ -65,8 +65,5 @@ impl Default for InputControl {
         }
     }
 }
-impl<D> Control<D> for InputControl {
-    fn uid(&self) -> ControlUid {
-        self._uid
-    }
+impl<D> Widget<D> for InputControl {
 }

@@ -1,12 +1,11 @@
 use tiny_skia::Pixmap;
 
 use crate::DrawCtx;
-use crate::traits::{Control};
+use crate::traits::{Widget};
 use crate::utils::uid::gen_uid;
-use crate::utils::{ControlUid};
+use crate::utils::{WidgetUid};
 
 pub struct ImageControl {
-    _uid: ControlUid,
     pos: (i32, i32),
     g_pos: (i32, i32),
     size: (u32, u32),
@@ -30,7 +29,6 @@ impl ImageControl {
 impl Default for ImageControl {
     fn default() -> Self {
         Self {
-            _uid: gen_uid(),
             pos: (0, 0),
             size: (0, 0),
             g_pos: (0, 0),
@@ -39,7 +37,7 @@ impl Default for ImageControl {
         }
     }
 }
-impl<D> Control<D> for ImageControl {
+impl<D> Widget<D> for ImageControl {
     fn update(&mut self, _data: &D) {
         
     }
@@ -62,10 +60,6 @@ impl<D> Control<D> for ImageControl {
         self.need_update = false;
     }
 
-    #[inline]
-    fn uid(&self) -> crate::utils::ControlUid {
-        self._uid
-    }
 }
 
 impl<'a, 'b> Clone for ImageControl {
@@ -76,7 +70,6 @@ impl<'a, 'b> Clone for ImageControl {
             g_pos: self.g_pos,
             need_update: true,
             img: self.img.clone(),
-            _uid: gen_uid(),
         }
     }
 }

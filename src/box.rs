@@ -40,4 +40,11 @@ impl AreaBox {
             down: self.down.max(area_box.down),
         }
     }
+
+    pub fn to_size_f32(&self) -> (f32, f32) {
+        (
+            (self.right - self.left) as _,
+            (self.down - self.top) as _
+        )
+    }
 }
