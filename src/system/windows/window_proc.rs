@@ -11,12 +11,12 @@ use super::SystemWindow;
 
 #[cfg(target_arch = "x86_64")]
 unsafe fn get_window_long(window: HWND) -> usize {
-    GetWindowLongPtrW(window, GWLP_USERDATA) as usize
+    GetWindowLongPtrW(window, GWLP_USERDATA) as _
 }
 
 #[cfg(target_arch = "x86")]
-unsafe fn get_window_long(window: HWND) -> LONG {
-    GetWindowLongW(window, GWLP_USERDATA) as usize
+unsafe fn get_window_long(window: HWND) -> usize {
+    GetWindowLongW(window, GWLP_USERDATA) as _
 }
 
 // User Events

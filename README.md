@@ -4,7 +4,7 @@
 
 # FabricUI (WIP)
 
-A light-weight gui framework using layered window in Rust. Inspired from Druid.
+A light-weight gui framework using layered window in Rust. Inspired from [Druid](https://crates.io/crates/druid).
 
 </center>
 
